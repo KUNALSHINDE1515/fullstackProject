@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { v2 as cloudinary } from 'cloudinary';
 import courseRoutes from "./routes/course.routes.js"
+import userRoutes from "./routes/user.route.js"
 import fileUpload from 'express-fileupload';
 const app = express()
 dotenv.config() // here we can  add the path to the .env file if it is not in the root directory
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 // definig routes 
 
 app.use("/api/v1/course", courseRoutes)
+app.use("/api/v1/user",userRoutes)
 
 // Cloudanary configuration code for get image from cloud
 cloudinary.config({ 
