@@ -1,16 +1,15 @@
-import { User } from "../models/users.models.js";
+import { Admin } from "../models/admin.model.js";
 import bycrpyt from "bcryptjs"
 import {z} from "zod"
 import jwt from "jsonwebtoken"
 import config from "../routes/config.js";
 import { Purchase } from "../models/purchase.model.js";
 import { Course } from "../models/course.model.js";
-
 export const signup = async (req,res)=>{
    
     const {firstName, lastName, email, password} = req.body;
 
-    const usetSchema = z.object({
+    const adminSchema = z.object({
         firstName: z
         .string()
         .min(3,{message: "FristName must be atleast 6 char long"}),
@@ -26,28 +25,28 @@ export const signup = async (req,res)=>{
       });
     const hashPassword = await bycrpyt.hash(password,10)
 
-    const validatedData = usetSchema.safeParse(req.body)
+    const validatedData = adminSchema.safeParse(req.body)
     if (!validatedData.success) {
         return res.status(400).json({errors:validatedData.error.issues.map(err => err.message)})
     }
     
 try {
-    const existingUser = await User.findOne({email : email})
-    if (existingUser) {
+    const existingAdmin = await Admin.findOne({email : email})
+    if (existingAdmin) {
         return res.status(400).json({
-            errors : "User already exists"
+            errors : "Admin already exists"
         });
     }
-    const newUser = new User({
+    const newAdmin = new Admin({
         firstName,
         lastName,
         email,
         password: hashPassword
     });
-    await newUser.save();
+    await newAdmin.save();
     res.status(201).json({
         message: "Singup succeedded",
-        newUser
+        newAdmin
     })
     
 } catch (error) {
@@ -65,19 +64,19 @@ export const login = async (req,res) =>{
     const {email, password} = req.body;
 
     try {
-        const user = await User.findOne({email:email})
-        // console.log(user)
-        const isPasswordCorrect = await bycrpyt.compare(password,user.password)
+        const Admin = await Admin.findOne({email:email})
+        // console.log(Admin)
+        const isPasswordCorrect = await bycrpyt.compare(password,Admin.password)
 
-        if (!user || !isPasswordCorrect) {
+        if (!Admin || !isPasswordCorrect) {
             return res.status(403).json({erros:"Invalid credentials"})
         }
 
         const token = jwt.sign(
         {
-            id: user._id,
+            id: Admin._id,
         },
-        config.JWT_USER_PASSWORD,
+        config.JWT_ADMIN_PASSWORD,
         {expiresIn: "1d"}
         );
         const cookieOptions = {
@@ -87,7 +86,7 @@ export const login = async (req,res) =>{
             sameSite: "Strict" // CSRF se hame bachayega
         }
         res.cookie("jwt",token, cookieOptions),
-        res.status(201).json({message: "Login successful",user,token})
+        res.status(201).json({message: "Login successful",Admin,token})
         
     } catch (error) {
         res.status(500).json({
@@ -110,28 +109,5 @@ export const logout = async (req,res) =>{
             errors: "Error in Logout"
         })
         console.log("Error in logout", error);
-    }
-}
-
-export const purchases = async (req,res)=>{
-
-    const userId = req.userId;
-
-    try {
-        const purchased = await  Purchase.find({userId})
-        let purchasedCourseId = []
-
-        for (let i = 0; i < purchasedCourseId.length; i++) {
-            purchased.push(purchased[i].courseId)  
-        }
-        const courseData = await Course.find({
-            _id: {$in:purchasedCourseId}
-        })
-        res.status(200).json({purchased, courseData})
-    } catch (error) {
-        res.status(500).json({
-            errors: "Error in purchases"
-        })
-        console.log("Error in purchase", error)
     }
 }

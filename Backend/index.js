@@ -5,6 +5,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import courseRoutes from "./routes/course.routes.js"
 import userRoutes from "./routes/user.route.js"
 import fileUpload from 'express-fileupload';
+import adminRoutes from "./routes/admin.route.js"
 const app = express()
 dotenv.config() // here we can  add the path to the .env file if it is not in the root directory
 
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 
 app.use("/api/v1/course", courseRoutes)
 app.use("/api/v1/user",userRoutes)
+app.use("/api/v1/admin",adminRoutes)
 
 // Cloudanary configuration code for get image from cloud
 cloudinary.config({ 
