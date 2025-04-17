@@ -3,8 +3,7 @@ import bycrpyt from "bcryptjs"
 import {z} from "zod"
 import jwt from "jsonwebtoken"
 import config from "../routes/config.js";
-import { Purchase } from "../models/purchase.model.js";
-import { Course } from "../models/course.model.js";
+
 export const signup = async (req,res)=>{
    
     const {firstName, lastName, email, password} = req.body;
@@ -64,21 +63,22 @@ export const login = async (req,res) =>{
     const {email, password} = req.body;
 
     try {
-        const Admin = await Admin.findOne({email:email})
+        const admin = await Admin.findOne({email:email})
         // console.log(Admin)
-        const isPasswordCorrect = await bycrpyt.compare(password,Admin.password)
+        const isPasswordCorrect = await bycrpyt.compare(password,admin.password)
 
-        if (!Admin || !isPasswordCorrect) {
+        if (!admin || !isPasswordCorrect) {
             return res.status(403).json({erros:"Invalid credentials"})
         }
 
         const token = jwt.sign(
         {
-            id: Admin._id,
+            id: admin._id,
         },
         config.JWT_ADMIN_PASSWORD,
         {expiresIn: "1d"}
-        );
+    );
+    // console.log("Token:", token)
         const cookieOptions = {
             expires : new Date(Date.now() + 24*60 *60 *1000), // 1 day
             httpOnly: true,  // can't be accsed via js directly
@@ -86,7 +86,7 @@ export const login = async (req,res) =>{
             sameSite: "Strict" // CSRF se hame bachayega
         }
         res.cookie("jwt",token, cookieOptions),
-        res.status(201).json({message: "Login successful",Admin,token})
+        res.status(201).json({message: "Login successful",admin,token})
         
     } catch (error) {
         res.status(500).json({
@@ -98,12 +98,17 @@ export const login = async (req,res) =>{
 
 export const logout = async (req,res) =>{
    
-
     try {
+        if (!req.cookies.jwt) {
+            return res.status(401).json({
+                errors: "Kindly login first"
+            })
+        }
         res.clearCookie("jwt");
         res.status(200).json({
             message: "Logged Out successfully"
         })
+        
     } catch (error) {
         res.status(500).json({
             errors: "Error in Logout"

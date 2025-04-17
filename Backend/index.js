@@ -6,6 +6,7 @@ import courseRoutes from "./routes/course.routes.js"
 import userRoutes from "./routes/user.route.js"
 import fileUpload from 'express-fileupload';
 import adminRoutes from "./routes/admin.route.js"
+import cookieParser from 'cookie-parser';
 const app = express()
 dotenv.config() // here we can  add the path to the .env file if it is not in the root directory
 
@@ -13,6 +14,7 @@ dotenv.config() // here we can  add the path to the .env file if it is not in th
 // middleware
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(fileUpload({
   useTempFiles : true,
   tempFileDir : '/tmp/'

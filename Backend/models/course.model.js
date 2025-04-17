@@ -22,6 +22,10 @@ const courseSchema = new mongoose.Schema({
             required: true,
         },
     },
+    cretorId:{
+        type: mongoose.Types.ObjectId,
+        ref: "User"
+    }
 })
 
 

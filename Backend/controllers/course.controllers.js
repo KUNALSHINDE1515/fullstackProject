@@ -11,6 +11,8 @@ export const creataeCourse = async (req, res) => {
 
     // here are destructuaring
 
+    const adminId = req.adminId;
+
     const {title, description, price, } = req.body;
 
 
@@ -46,7 +48,8 @@ export const creataeCourse = async (req, res) => {
             image:{
                 public_id : cloudResponse.public_id,
                 url: cloudResponse.url,
-            }
+            },
+            creatorId:adminId
         }
       const course =  await Course.create(courseData)
        res.json({
@@ -64,14 +67,22 @@ export const creataeCourse = async (req, res) => {
 };
 
 export const updateCourse = async(req,res) =>{
-
+    const adminId = req.adminId;
     const {courseId} = req.params;
     const{title, description,price, image} = req.body;
 
     try {
+
+        const courseSearch = await Course.findById(courseId)
+        if (!courseSearch) {
+            return res.status(404).json({
+                errors: "Cousre not found"
+            })
+        }
         
         const course = await Course.updateOne({
             _id: courseId,
+            creatorId: adminId,
         },{
             title,
             description,
@@ -84,7 +95,8 @@ export const updateCourse = async(req,res) =>{
     );
 
         res.status(201).json({
-            message: "Course Updated Successfully"
+            message: "Course Updated Successfully",
+            course
         })
     } catch (error) {
         res.status(500).json({
@@ -95,11 +107,13 @@ export const updateCourse = async(req,res) =>{
 }
 
 export const deleteCourse = async(req,res) => {
+    const adminId = req.adminId
     const {courseId} = req.params
     try {
 
         const course = await Course.findOneAndDelete({
             _id:courseId,
+            creatorId: adminId,
         })
         console.log("here are course:", course);
         
